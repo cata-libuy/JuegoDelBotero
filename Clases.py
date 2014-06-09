@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Clases para el juego
 import sys
+import time
 
 class place(object):
 # LUGAR: Isla en la que pueden haber pasajeros
@@ -11,8 +12,11 @@ class place(object):
         self.name = name 
         self.human_flag = human_flag
         
-    def __str__(self):        
-        return 'LUGAR: ' + self.name + ". HABITANTES: " + ", ".join([str(e) for e in self.habitantes])
+    def __str__(self):
+        human = ""
+        if self.human_flag == 1:
+            human = ". ==> Estas aqui"        
+        return self.name + ". HABITANTES: " + ", ".join([str(e) for e in self.habitantes]) + str(human)
     
     def getName(self):
         return self.name
@@ -26,39 +30,33 @@ class place(object):
         self.habitantes.remove(habitante)
     
     def lunchTime(self, juego):
-        #Los habitantes comen lo que corresponde a su especie
+        #SI no hay humanos, los habitantes comen lo que corresponde a su especie
         if self.human_flag == 0:
-            #print "No hay humano, especies se comeran en " + str(self)            
-            #print "ordeno por eat level"
+            #ordeno por nivel alimenticio
             hab_new = sorted(self.habitantes, key=lambda especie: especie.eat_level)
-            #obtener el num de elementos para iterar
-            #print str(hab_new)
-            #raw_input("presione una tecla..")
             it = len(hab_new)
             index = 0
             eatens = 0
             while it > 1:
+                #verifico si hay especies que se coman
                 if hab_new[index].getEatLevel() + 1 == hab_new[index + 1].getEatLevel():
-                    print str(hab_new[index + 1]) + " se come a: " + str(hab_new[index])
+                    print "Oops... " + str(hab_new[index + 1]) + " se come a " + str(hab_new[index])
                     hab_new.remove(hab_new[index])
                     eatens = eatens + 1
                     it = len(hab_new)
                 else:
-                    #print "sin comidas"
-                    #raw_input("control2")
                     index = index + 1
                     it = it - 1
             self.habitantes = hab_new
             if eatens >= 1:
-                print "Perdidas en " + str(self.name)
+                print str(self.name) + "     CON PERDIDAS!!!" 
                 juego.gameOver()
             else:
                 #especies no se comen
-                print "Ok, sin muertes en " + str(self.name)
-                #raw_input("control 5")                      
+                print str(self.name) + " sin perdidas."                 
               
         else:
-            print "Ok, humano presente en " + str(self.name)
+            print str(self.name) + " con humano presente."
         
     def isHab(self, habitante):        
         if self.habitantes.count(habitante) != 0:
@@ -74,44 +72,36 @@ class boat(object):
         self.destino = destino
             
     def __str__(self):
-        return "Bote disponible en " + str(self.origen.name) + " con destino " + str(self.destino.name)
-   
+        return "\nBote saliendo de " + str(self.origen.name) + " con destino " + str(self.destino.name) + " ..."
+
     def runBoat(self, pasajero, juego):
         #Verifica origen de pasajeros
-        print self
-        if pasajero != "empty":               
+        print self        
+        if pasajero != "solo":               
             #print "Verificando pasajero " + str(pasajero)
-            #raw_input("presione una tecla...")
             if self.origen.isHab(pasajero) == False:
-                print str(pasajero) + " no esta en el origen, intenta de nuevo"
-                #raw_input("presione una tecla...")            
+                print str(pasajero) + " no esta en esta isla (" + str(self.origen.name) + "), intenta de nuevo."        
                 return 1
             else:
                 #se lleva a pasajeros de isla1 a isla2
-                #raw_input("presione una tecla...")
                 self.destino.addHab(pasajero)
                 self.origen.removeHab(pasajero)
-                #print "pasajero transportado"
-                #raw_input("presione una tecla...")
             
         #cambia al humano
         self.origen.human_flag = 0
         self.destino.human_flag = 1
-        print "Has llegado a la isla " + str(self.destino.name)
-        #raw_input("presione una tecla...")
+        #print "Has llegado a la isla " + str(self.destino.name) + "!"
             
         #habitantes comen
         self.origen.lunchTime(juego)
         self.destino.lunchTime(juego)
-        #print "hora comida lista"
-        #raw_input("presione una tecla...")
             
-        #cambia de ruta
+        #actualiza ruta
         nuevoOrigen = self.destino
         nuevoDestino = self.origen
         self.origen = nuevoOrigen
         self.destino = nuevoDestino
-        print "Viaje terminado \n"
+        #print "-------------------------- \n"
         return 0           
             
 
@@ -137,7 +127,7 @@ class passenger(object):
 # JUEGO: Juego completo compuesto de varias jugadas y un resultado
 class game(object):
     def __init__(self, islas, inicio, destino, bote):
-        self.turn = 0
+        self.turn = 1
         self.state = 1
         self.islas = islas
         self.isla_actual = inicio #isla de partida
@@ -145,12 +135,13 @@ class game(object):
         self.isla_meta = destino
         
     def __str__(self):
-        return "Estas en " + str(self.isla_actual.name) + ". Jugada numero " + str(self.turn) + "\n"
+        return "Jugada numero " + str(self.turn)
         
     def startGame(self):
         #da la bienvenida al juego e inicia primera jugada
-        print "BIENVENIDO AL JUEGO DEL BOTERO \n"
-        print "Debes llevar a un lobo, una cabra y una lechuga a la otra isla. \n. En tu bote cabes tu con una carga a la vez. \n Si dejas al lobo sin vigilancia, se come a la cabra. Lo mismo la cabra con la verdura.\n"
+        print "\n"
+        print "***BIENVENIDO AL JUEGO DEL BOTERO*** \n"
+        print "Instrucciones: Debes llevar a un lobo, una cabra y una verdura a la otra isla. \nPuedes viajar en tu bote con una carga a la vez. \nSi dejas al lobo sin vigilancia, se come a la cabra. Lo mismo la cabra con la verdura.\n"
         #raw_input("press a key to continue")
         self.playTurn()
     
@@ -158,11 +149,14 @@ class game(object):
         #Juega un turno
         
         #Muestra el escenario y estado
+        print "\n-----------------------------------------------------"
+        print self
+        print "-----------------------------------------------------"        
         for e in self.islas:
             print (e)
-        print self
+        print "-----------------------------------------------------"         
                     
-        #Pregunta que quiere mover             
+        #Pregunta que quiere mover                     
         viajero = self.askInput()
         if viajero == 0:
             sys.exit()
@@ -177,22 +171,23 @@ class game(object):
 
     def askInput(self):
         #Pedir opcion
-        pasDic = {"C": cabra1, "V": verdura1, "L": lobo1, "S": "empty", "exit": 0 }
-        pas = raw_input("Ingresa que quieres llevar: C = Cabra, V = Verdura, L = Lobo, S = Viajas solo, exit = salir del juego. >>> ")
+        pas =""
+        pasDic = {"C": cabra1, "V": verdura1, "L": lobo1, "S": "solo", "exit": 0 }
+        pas = raw_input("QUE LLEVARAS A LA OTRA ISLA? \nC = Cabra, V = Verdura, L = Lobo, S = Viajas solo, exit = salir del juego. >>> ")
         if pasDic.has_key(str(pas)) :
             return pasDic[str(pas)]            
         else:
             print "Eleccion invalida, intenta nuevamente"
-            self.askInput()                   
+            return self.askInput()                   
        
     def evalGame(self):
         if self.state == 0:
-            print "Game Over"
+            print "*** GAME OVER :( ***"
             return 0
         else:
             #Cumple el objetivo del juego
             if len(self.isla_meta.habitantes) == 3:
-                print "MUY BIEN GANASTE con " + str(self.turno) + " jugadas." 
+                print "MUY BIEN GANASTE con " + str(self.turn) + " jugadas." 
                 return 2
             else:
                 self.playTurn() 
@@ -218,3 +213,4 @@ islas = [isla1, isla2]
 
 #comenzar
 juego = game(islas, isla1, isla2, bote)
+juego.startGame()
