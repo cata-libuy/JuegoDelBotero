@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Clases para el juego
+# Juego del botero, instrucciones en readme
 import sys
 import time
 
 class place(object):
-# LUGAR: Isla en la que pueden haber pasajeros
+# LUGAR: Isla en la que pueden haber habitantes
     
     def __init__(self, name, human_flag):
         # Crea una isla sin habitantes
@@ -30,7 +30,7 @@ class place(object):
         self.habitantes.remove(habitante)
     
     def lunchTime(self, juego):
-        #SI no hay humanos, los habitantes comen lo que corresponde a su especie
+        #Si no hay humanos, los habitantes comen lo que corresponde a su especie
         if self.human_flag == 0:
             #ordeno por nivel alimenticio
             hab_new = sorted(self.habitantes, key=lambda especie: especie.eat_level)
@@ -56,6 +56,7 @@ class place(object):
                 print str(self.name) + " sin perdidas."                 
               
         else:
+            #Hay humano, asi es que especies no se comen
             print str(self.name) + " con humano presente."
         
     def isHab(self, habitante):        
@@ -75,10 +76,9 @@ class boat(object):
         return "\nBote saliendo de " + str(self.origen.name) + " con destino " + str(self.destino.name) + " ..."
 
     def runBoat(self, pasajero, juego):
-        #Verifica origen de pasajeros
+        #Verifica que pasajero este en origen
         print self        
         if pasajero != "solo":               
-            #print "Verificando pasajero " + str(pasajero)
             if self.origen.isHab(pasajero) == False:
                 print str(pasajero) + " no esta en esta isla (" + str(self.origen.name) + "), intenta de nuevo."        
                 return 1
@@ -90,9 +90,8 @@ class boat(object):
         #cambia al humano
         self.origen.human_flag = 0
         self.destino.human_flag = 1
-        #print "Has llegado a la isla " + str(self.destino.name) + "!"
             
-        #habitantes comen
+        #habitantes comen en sus islas respectivas
         self.origen.lunchTime(juego)
         self.destino.lunchTime(juego)
             
@@ -101,7 +100,6 @@ class boat(object):
         nuevoDestino = self.origen
         self.origen = nuevoOrigen
         self.destino = nuevoDestino
-        #print "-------------------------- \n"
         return 0           
             
 
@@ -112,7 +110,7 @@ class humano(object):
     def __str__(self):
         return "humano"
 
-# PASAJERO: Un animal o vegetal que come a otro es de un nivel inmediatamente inferior
+# PASAJERO: Un animal o vegetal que come a otro si es de un nivel inmediatamente inferior en la piramide alimenticia
 class passenger(object):
     def __init__(self, kind, eat_level):
         self.kind = kind
@@ -122,16 +120,14 @@ class passenger(object):
     def getEatLevel(self):
         return self.eat_level
 
-# JUGADA: Movimiento de un turno
 
-# JUEGO: Juego completo compuesto de varias jugadas y un resultado
+# JUEGO: Juego completo con jugadas y un resultado
 class game(object):
     def __init__(self, islas, inicio, destino, bote):
         self.turn = 1
         self.state = 1
         self.islas = islas
-        self.isla_actual = inicio #isla de partida
-        #self.otra_isla = destino
+        self.isla_actual = inicio
         self.isla_meta = destino
         
     def showState(self):
@@ -179,10 +175,11 @@ class game(object):
        
     def evalGame(self):
         if self.state == 0:
+            #Pierde el juego
             print "*** GAME OVER :( ***"
             return 0
         else:
-            #Cumple el objetivo del juego
+            #Sigue el juego
             if len(self.isla_meta.habitantes) == 3:
                 self.showState() 
                 print "MUY BIEN GANASTE EN " + str(self.turn) + " JUGADAS!!!" 
@@ -196,7 +193,7 @@ class game(object):
     
        
          
-#ESCENARIO
+#ESCENARIO, en proximas versiones pueden haber alternativas mas complejas conmas jugadores
 isla1 = place("ISLA 1", 1)
 isla2 = place("ISLA 2", 0)
 bote = boat(isla1, isla2)
