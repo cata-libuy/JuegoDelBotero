@@ -134,8 +134,14 @@ class game(object):
         #self.otra_isla = destino
         self.isla_meta = destino
         
-    def __str__(self):
-        return "Jugada numero " + str(self.turn)
+    def showState(self):
+        #Muestra el escenario y estado
+        print "\n-----------------------------------------------------"
+        print "Jugada numero " + str(self.turn)
+        print "-----------------------------------------------------"        
+        for e in self.islas:
+            print (e)
+        print "-----------------------------------------------------"       
         
     def startGame(self):
         #da la bienvenida al juego e inicia primera jugada
@@ -146,16 +152,7 @@ class game(object):
         self.playTurn()
     
     def playTurn(self):
-        #Juega un turno
-        
-        #Muestra el escenario y estado
-        print "\n-----------------------------------------------------"
-        print self
-        print "-----------------------------------------------------"        
-        for e in self.islas:
-            print (e)
-        print "-----------------------------------------------------"         
-                    
+        self.showState()                    
         #Pregunta que quiere mover                     
         viajero = self.askInput()
         if viajero == 0:
@@ -187,7 +184,8 @@ class game(object):
         else:
             #Cumple el objetivo del juego
             if len(self.isla_meta.habitantes) == 3:
-                print "MUY BIEN GANASTE con " + str(self.turn) + " jugadas." 
+                self.showState() 
+                print "MUY BIEN GANASTE EN " + str(self.turn) + " JUGADAS!!!" 
                 return 2
             else:
                 self.playTurn() 
